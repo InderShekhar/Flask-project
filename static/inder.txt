@@ -1,0 +1,9 @@
+.\env\Scripts\activate.ps1
+python app.py
+
+
+
+from app import db, app
+with app.app_context():
+    db.create_all()
+exit()
