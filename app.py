@@ -42,12 +42,11 @@ class Todo(db.Model):
         return f"{self.sno} - {self.title}"
 
 # Initialize database tables (moved from module level to avoid issues in serverless)
-def init_db():
-    with app.app_context():
-        db.create_all()
+# Tables are created on first request instead of at module load time
+@app.before_first_request
+def create_tables():
+    db.create_all()
 
-# Call init_db when the app starts
-init_db()
 
 
 @app.route('/',methods=['GET', 'POST'])
