@@ -20,6 +20,16 @@ if database_url.startswith('postgres://'):
 
 app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+# Configure connection pool for Neon PostgreSQL (important for serverless)
+if database_url.startswith('postgresql://'):
+    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+        'pool_pre_ping': True,  # Verify connections before using them
+        'pool_recycle': 300,    # Recycle connections after 5 minutes
+        'pool_size': 10,        # Connection pool size
+        'max_overflow': 5       # Allow up to 5 extra connections
+    }
+
 db = SQLAlchemy(app)
 
 class Todo(db.Model):
@@ -31,9 +41,14 @@ class Todo(db.Model):
     def __repr__(self) -> str:
         return f"{self.sno} - {self.title}"
 
-# Ensure database tables are created before handling requests
-with app.app_context():
-    db.create_all()
+# Initialize database tables (moved from module level to avoid issues in serverless)
+def init_db():
+    with app.app_context():
+        db.create_all()
+
+# Call init_db when the app starts
+init_db()
+
 
 @app.route('/',methods=['GET', 'POST'])
 def hello_world():
