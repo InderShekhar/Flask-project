@@ -41,16 +41,16 @@ class Todo(db.Model):
     def __repr__(self) -> str:
         return f"{self.sno} - {self.title}"
 
-# Initialize database tables (moved from module level to avoid issues in serverless)
-# Tables are created on first request instead of at module load time
-@app.before_first_request
-def create_tables():
-    db.create_all()
-
-
+# Helper function to ensure tables exist (Flask 3.x compatible)
+def ensure_tables_exist():
+    try:
+        db.create_all()
+    except Exception as e:
+        print(f"Error creating tables: {e}")
 
 @app.route('/',methods=['GET', 'POST'])
 def hello_world():
+    ensure_tables_exist()  # Ensure tables exist before querying
     if request.method=='POST':
         title=request.form['title']
         desc=request.form['desc']
@@ -69,6 +69,7 @@ def products():
 
 @app.route('/update/<int:sno>', methods=['GET', 'POST'])  
 def update(sno):
+    ensure_tables_exist()  # Ensure tables exist before querying
     if request.method=='POST':
         title=request.form['title']
         desc=request.form['desc']
