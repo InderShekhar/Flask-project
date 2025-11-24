@@ -18,6 +18,8 @@ class Todo(db.Model):
         return f"{self.sno} - {self.title}"
 
 # Ensure database tables are created before handling requests
+with app.app_context():
+    db.create_all()
 
 @app.route('/',methods=['GET', 'POST'])
 def hello_world():
