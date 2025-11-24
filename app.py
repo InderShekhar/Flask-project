@@ -11,7 +11,14 @@ app = Flask(__name__)
 
 # Use DATABASE_URL from environment variable (Vercel will set this automatically)
 # Falls back to SQLite for local development if DATABASE_URL is not set
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL', 'sqlite:///todo.db')
+database_url = os.getenv('DATABASE_URL', 'sqlite:///todo.db')
+
+# Fix for SQLAlchemy 2.0+: Convert postgres:// to postgresql://
+# Vercel/Neon sometimes provides postgres:// but SQLAlchemy 2.0+ requires postgresql://
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql://', 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
